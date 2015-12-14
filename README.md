@@ -1,4 +1,4 @@
-# PacManBot
+# PacManAgent
 
 Projekat u kome ćemo iskoristiti NEAT (NeuroEvolution of Augmenting Topologies) metodu kako bismo razvili neuronsku mrežu koja će da pokuša da reši nivo PacMan igrice.
 
