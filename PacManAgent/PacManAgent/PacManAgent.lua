@@ -1,0 +1,3 @@
+--AUTHORS: David Vuletic RA63/2012; Nikola Todorovic RA75/2012
+--MENTORS: PhD Djordje Obradovic; Mihailo Isakov
+--SUBJECT: LUA script for solving PacMan level
