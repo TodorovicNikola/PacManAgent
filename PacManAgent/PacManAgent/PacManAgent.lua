@@ -3,7 +3,6 @@
 --SUBJECT: LUA script for solving PacMan level
 
 memory.usememorydomain("RAM"); --resetovanje domena
-console.writeline(memory.getcurrentmemorydomain());
 
 timeout = 100;
 Filename = "pacman.State"
@@ -23,61 +22,73 @@ end
 
 --kreiranje mape koju pacman vidi
 function getEnvironment(pacX, pacY)
-	x = pacX - 5;
-	y = pacY - 5;
+	local x = pacX - 5;
+	local y = pacY - 5;
 
-	environment = {};
-	
+	local environment = {};
+	local memLocation;
+
 	memory.usememorydomain("CIRAM (nametables)");
-	console.writeline(memory.getcurrentmemorydomain());
 	
 	for j = 1, 11 do
-		str = "";
+		local str = "";
 		for i = 1, 11 do
 			if(i~=6 or j~=6) then
 				memLocation = 65 + x+i-1 + 32*(y+j-1);
-				environment[i+11*j] = memory.readbyte(memLocation);
-				if(environment[i+11*j] ~= 3 and environment[i+11*j] ~= 0 and environment[i+11*j] ~= 7 and environment[i+11*j] ~= 8 and environment[i+11*j] ~= 9) then
-					environment[i+11*j] = -1;
-					
-				else
-					if(environment[i+11*j] == 3 or environment[i+11*j] == 9) then
+				if (memLocation > 65 and memLocation < 917) then
+					environment[i+11*j] = memory.readbyte(memLocation);
+					if (environment[i+11*j] == 3 or environment[i+11*j] == 9 or environment[i+11*j] == 1 or environment[i+11*j] == 2) then --bobice
 						environment[i+11*j] = 2;
-					
-					else
+					elseif (environment[i+11*j] == 7 or environment[i+11*j] == 8 or environment[i+11*j] == 0) then -- prazno polje
 						environment[i+11*j] = 1;
-						
+					else                                              -- zid/van mape
+						environment[i+11*j] = -1;
 					end
-				end
-				
-				
-				--console.writeline(environment[i+11*j]);
-				
-			else 
-				environment[i+11*j] = 0;
-				
+				else
+					environment[i+11*j] = -1;
+				end	
+			else -- pacman
+				environment[i+11*j] = 0
 			end
-			if(environment[i+11*j] >= 0) then
+			
+			--[[if(environment[i+11*j] >= 0) then
 				str = str .. "  " .. environment[i+11*j];
 			
 			else
 				str = str .. " " .. environment[i+11*j];
 
-			end
+			end]]
+
+			
+
 		end
 		console.writeline(str);
-		
 	end
 
 	memory.usememorydomain("RAM");
-	console.writeline(memory.getcurrentmemorydomain());
 
+	
 	return environment;
+end
+
+function setJoypad(btn)
+	
+	for b = 1,#ButtonNames do
+		controller["P1 " .. ButtonNames[b]] = false;
+	end
+
+	controller["P1 " .. ButtonNames[btn]] = true;
+	joypad.set(controller);
+
 end
 
 while true do
 
 	timeout = timeout - 1;
+
+	if(memory.readbyte(0x0603) == 10) then	-- reload pri umiranju
+			savestate.load(Filename)
+	end
 
 	if (timeout <= 0) then
 		
@@ -88,31 +99,15 @@ while true do
 
 		--pellets = memory.readbyte(0x006A);
 
-		env = getEnvironment(pacX,pacY);
-		console.writeline(pacX .. " " .. pacY);
-		str = "";
+		getEnvironment(pacX,pacY);
 		
-		for z = 1, #env do
-			str = str .. env[z] .. " ";
-		end
-
-		console.writeline(str);
-
 		--savestate.load(Filename);
-
+		
+		random = math.random(4);
+		
+		setJoypad(random);
+		
 		timeout = 100;
-
-		
-	else
-		
-		--[[random = math.random(4);
-		console.writeline(random);
-		for b = 1,#ButtonNames do
-			controller["P1 " .. ButtonNames[b] = false;
-		end
-		controller["P1 " .. ButtonNames[random] = true;
-		joypad.set(controller)
-		timeout = 1000; ]]--
 		
 	end
 	emu.frameadvance();
