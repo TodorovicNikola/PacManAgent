@@ -2,9 +2,7 @@
 --MENTORS: PhD Djordje Obradovic; Mihailo Isakov
 --SUBJECT: LUA script for solving PacMan level
 
-savestate.load(Filename) -- na pocetku udje u sacuvano stanje
-
-memory.usememorydomain("RAM")--resetovanje domena
+--****** KONSTANTE ******--
 
 timeout = 100
 
@@ -17,14 +15,8 @@ ButtonNames = {
 		"Right"
 	}
 
-controller = {}
 
-
-
-for b = 1,#ButtonNames do
-	controller["P1 " .. ButtonNames[b]] = false
-
-end
+--****** FUNKCIJE ******--
 
 --kreiranje mape koju pacman vidi
 function getEnvironment(pacX, pacY)
@@ -70,31 +62,17 @@ function getEnvironment(pacX, pacY)
 	
 	local sprites = {}
 	sprites = getSpritePositions()
-	
+
 	for i=1, 8, 2 do
 		pacmanLocalX = sprites[i] - x + 1
 		pacmanLocalY = sprites[i+1] - y + 1
 	
-		if(pacmanLocalX >= 1 and sprites[i] <= 11) then
+		if(pacmanLocalX >= 1 and pacmanLocalX <= 11) then
 			if(pacmanLocalY >= 1 and pacmanLocalY <= 11) then
 				environment[pacmanLocalX + 11*(pacmanLocalY-1)] = 3
 				
 			end
 		end
-	end
-	
-	for j = 0, 10 do
-		local str = ""
-		for i = 1, 11 do
-			if(environment[i+11*j] >= 0) then
-				str = str .. "  " .. environment[i+11*j]
-			
-			else
-				str = str .. " " .. environment[i+11*j]
-
-			end
-		end
-		console.writeline(str)
 	end
 
 	return environment
@@ -136,6 +114,23 @@ function setJoypad(btn)
 
 end
 
+function clearJoypad()
+	controller = {}
+	for b = 1,#ButtonNames do
+		controller["P1 " .. ButtonNames[b]] = false
+	end
+	joypad.set(controller)
+end
+
+
+
+--****** MAIN ******-- 
+
+savestate.load(Filename) -- na pocetku udje u sacuvano stanje
+memory.usememorydomain("RAM")--resetovanje domena
+clearJoypad()
+
+
 while true do
 
 	timeout = timeout - 1
@@ -153,8 +148,23 @@ while true do
 
 		--pellets = memory.readbyte(0x006A)
 
-		getEnvironment(pacX,pacY)
-		
+		local env = getEnvironment(pacX,pacY)
+		local str = ""
+
+		for i=1,#env do
+			if(math.fmod(i,11) == 1) then
+				str = str .. "\n"
+			end	
+
+			if(env[i] >= 0) then
+				str = str .. "  " .. env[i]
+			else
+				str = str .. " " .. env[i]
+			end
+		end
+
+		console.writeline(str)
+
 		random = math.random(4)
 		
 		setJoypad(random)
